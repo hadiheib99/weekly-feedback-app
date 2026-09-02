@@ -1,0 +1,5 @@
+{% extends 'feedback/base.html' %}
+{% block title %}Cycle closed · Pulse{% endblock %}
+{% block content %}<main class="feedback-page"><div class="feedback-wrap"><div class="card success">
+  <div class="success-icon">—</div><h2>This check-in is closed.</h2><p>The feedback window for <strong>{{ cycle.project.name }}</strong> is not currently open.</p>
+</div></div></main>{% endblock %}

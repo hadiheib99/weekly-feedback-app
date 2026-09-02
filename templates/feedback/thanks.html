@@ -1,0 +1,6 @@
+{% extends 'feedback/base.html' %}
+{% block title %}Thank you · Pulse{% endblock %}
+{% block content %}<main class="feedback-page"><div class="feedback-wrap"><div class="card success">
+  <div class="success-icon">✓</div><div class="eyebrow">Response received</div><h2>Thank you for sharing.</h2>
+  <p>Your anonymous feedback for <strong>{{ cycle.project.name }}</strong> has been submitted.</p>
+</div></div></main>{% endblock %}

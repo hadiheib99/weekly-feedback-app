@@ -1,0 +1,12 @@
+{% extends 'feedback/base.html' %}
+{% block title %}Dashboard · Pulse{% endblock %}
+{% block content %}<div class="dash-layout">{% include 'feedback/sidebar.html' %}<main class="main">
+  <div class="main-header"><div><div class="eyebrow">{% if is_admin %}Admin portfolio{% else %}Project lead{% endif %}</div><h1>Project overview</h1><p class="subtle">Weekly health across projects you can access.</p></div>{% if is_admin %}<a class="primary" href="{% url 'admin:feedback_project_add' %}" style="width:auto;text-decoration:none">+ New project</a>{% endif %}</div>
+  <section class="card panel"><div class="panel-head"><div><h3>Active projects</h3><p class="subtle">All recorded cycles</p></div></div>
+  <div style="overflow:auto"><table class="projects-table"><thead><tr><th>Project</th><th>Health</th><th>Leads</th><th>Responses</th><th>Status</th></tr></thead><tbody>
+    {% for project in projects %}<tr><td><a class="project-name" href="{% url 'project_dashboard' project.id %}">{{ project.name }}</a><div class="subtle">{{ project.description|truncatechars:48 }}</div></td>
+      <td><span class="mini-score">{{ project.average_score|floatformat:1|default:'—' }}</span></td><td>{% for lead in project.leads.all %}{{ lead.username }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+      <td>{{ project.response_count }}</td><td><span class="status">Active</span></td></tr>
+    {% empty %}<tr><td colspan="5">No projects are assigned to this account.</td></tr>{% endfor %}
+  </tbody></table></div></section>
+</main></div>{% endblock %}

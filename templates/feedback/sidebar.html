@@ -1,0 +1,6 @@
+<aside class="sidebar"><div class="side-title">Workspace</div>
+  <a class="side-item active" href="{% url 'dashboard' %}">▦ Overview</a>
+  <a class="side-item" href="{% url 'dashboard' %}">▤ Projects</a>
+  {% if is_admin %}<a class="side-item" href="{% url 'admin:auth_user_changelist' %}">♙ People</a>{% endif %}
+  {% if is_admin %}<a class="side-item" href="{% url 'admin:index' %}">⚙ Administration</a>{% endif %}
+</aside>

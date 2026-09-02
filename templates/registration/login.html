@@ -1,0 +1,7 @@
+{% extends 'feedback/base.html' %}
+{% block title %}Sign in · Pulse{% endblock %}
+{% block content %}<main class="feedback-page"><div class="feedback-wrap" style="max-width:440px"><form method="post" class="card form-card">{% csrf_token %}<div class="eyebrow">Team access</div><h2 style="font-size:32px;margin:8px 0 24px">Sign in to Pulse</h2>
+  {% if form.errors %}<p class="form-error">The username or password is incorrect.</p>{% endif %}
+  <div class="field"><label class="question-label" for="id_username">Username</label><input id="id_username" name="username" required autofocus></div>
+  <div class="field"><label class="question-label" for="id_password">Password</label><input id="id_password" type="password" name="password" required></div>
+  <button class="primary" style="margin-top:24px">Sign in</button></form></div></main>{% endblock %}

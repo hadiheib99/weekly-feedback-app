@@ -1,0 +1,20 @@
+{% extends 'feedback/base.html' %}
+{% block title %}{{ cycle.project.name }} feedback · Pulse{% endblock %}
+{% block content %}
+<main class="feedback-page"><div class="feedback-wrap">
+  <div class="eyebrow">Weekly project check-in</div>
+  <h1>How is the project feeling this week?</h1>
+  <p class="intro"><strong>{{ cycle.project.name }}</strong>{% if cycle.project.description %} — {{ cycle.project.description }}{% endif %}</p>
+  <form class="card form-card" method="post">{% csrf_token %}
+    <fieldset style="border:0;padding:0;margin:0"><legend class="question-label">Overall project health</legend>
+      <div class="rating-grid" role="radiogroup">
+        {% for radio in form.score %}<label class="rating">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>{% endfor %}
+      </div><div class="scale-labels"><span>Critical</span><span>Excellent</span></div>
+    </fieldset>
+    {% if form.score.errors %}<p class="form-error">Choose a score from 1 to 5.</p>{% endif %}
+    <div class="field"><label class="question-label" for="{{ form.comment.id_for_label }}">Anything else we should know? <span class="optional">Optional</span></label>{{ form.comment }}</div>
+    <div class="privacy"><span aria-hidden="true">◈</span><span>Your response is anonymous. We use protected device and network identifiers only to prevent duplicates; project leads cannot see them.</span></div>
+    <button class="primary" type="submit">Submit anonymous feedback</button>
+  </form>
+</div></main>
+{% endblock %}
