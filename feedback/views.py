@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count
+from django.db.models.functions import Lower
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -100,8 +101,15 @@ def _visible_projects(user):
 
 @login_required
 def dashboard(request):
-    projects = _visible_projects(request.user).annotate(
-        response_count=Count("cycles__responses"), average_score=Avg("cycles__responses__score")
+    projects = (
+        _visible_projects(request.user)
+        .filter(is_active=True)
+        .annotate(
+            response_count=Count("cycles__responses", distinct=True),
+            average_score=Avg("cycles__responses__score"),
+        )
+        .order_by(Lower("name"), "id")
+        .prefetch_related("leads")
     )
     return render(request, "feedback/dashboard.html", {"projects": projects, "is_admin": request.user.is_staff})
 
