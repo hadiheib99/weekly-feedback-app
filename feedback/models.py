@@ -1,6 +1,7 @@
 import secrets
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
@@ -29,6 +30,17 @@ class FeedbackCycle(models.Model):
 
     class Meta:
         ordering = ["-opens_at"]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(closes_at__gt=models.F("opens_at")),
+                name="cycle_closes_after_opening",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.opens_at and self.closes_at and self.closes_at <= self.opens_at:
+            raise ValidationError({"closes_at": "Closing time must be after opening time."})
 
     @property
     def is_open(self):
