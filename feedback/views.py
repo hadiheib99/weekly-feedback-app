@@ -1,5 +1,5 @@
 import hashlib
-import uuid
+import secrets
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -11,6 +11,10 @@ from django.utils import timezone
 
 from .forms import ResponseForm
 from .models import FeedbackCycle, Project
+
+
+MISSING_NETWORK_IDENTIFIER = "missing-network-address"
+DEVICE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 
 def home(request):
@@ -30,6 +34,12 @@ def _hash(value):
     return hashlib.sha256(f"{secret}:{value}".encode()).hexdigest()
 
 
+def _network_identifier(request):
+    # Client-supplied forwarded headers are intentionally ignored. A deployment
+    # behind a trusted proxy must arrange for REMOTE_ADDR to contain the client.
+    return request.META.get("REMOTE_ADDR") or MISSING_NETWORK_IDENTIFIER
+
+
 def feedback_form(request, token):
     cycle = get_object_or_404(FeedbackCycle.objects.select_related("project"), token=token)
     if not cycle.project.is_active:
@@ -41,9 +51,8 @@ def feedback_form(request, token):
     if now > cycle.closes_at:
         return render(request, "feedback/closed.html", {"cycle": cycle}, status=403)
 
-    device_id = request.COOKIES.get("pulse_device") or uuid.uuid4().hex
-    forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-    network = forwarded or request.META.get("REMOTE_ADDR", "unknown")
+    device_id = request.COOKIES.get("pulse_device") or secrets.token_urlsafe(32)
+    network = _network_identifier(request)
     network_hash, device_hash = _hash(network), _hash(device_id)
     duplicate = cycle.responses.filter(network_hash=network_hash).exists() or cycle.responses.filter(device_hash=device_hash).exists()
 
@@ -62,7 +71,15 @@ def feedback_form(request, token):
             except IntegrityError:
                 return render(request, "feedback/unavailable.html", {"duplicate_submission": True}, status=409)
             result = redirect("feedback_thanks", token=token)
-            result.set_cookie("pulse_device", device_id, max_age=60 * 60 * 24 * 365, httponly=True, samesite="Lax", secure=not settings.DEBUG)
+            result.set_cookie(
+                "pulse_device",
+                device_id,
+                max_age=DEVICE_COOKIE_MAX_AGE,
+                path="/",
+                httponly=True,
+                samesite="Lax",
+                secure=not settings.DEBUG,
+            )
             return result
     else:
         if duplicate:
