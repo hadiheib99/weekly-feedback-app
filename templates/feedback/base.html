@@ -16,7 +16,7 @@
     <header class="topbar">
       <a class="brand" href="{% url 'home' %}" style="color:inherit;text-decoration:none"><span class="brand-mark"></span><span>Pulse</span></a>
       {% if user.is_authenticated %}
-        <nav class="preview-nav"><a href="{% url 'dashboard' %}" class="active">Dashboard</a><a href="{% url 'logout' %}">Sign out</a></nav>
+        <nav class="preview-nav"><a href="{% url 'dashboard' %}" class="active">Dashboard</a><form method="post" action="{% url 'logout' %}" style="display:inline">{% csrf_token %}<button type="submit" class="nav-button">Sign out</button></form></nav>
         <div class="avatar">{{ user.username|slice:':2'|upper }}</div>
       {% else %}<a class="outline-btn" href="{% url 'login' %}" style="text-decoration:none">Team sign in</a>{% endif %}
     </header>

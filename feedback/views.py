@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count
-from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -95,8 +94,8 @@ def feedback_thanks(request, token):
 
 def _visible_projects(user):
     if user.is_staff:
-        return Project.objects.filter(is_active=True)
-    return Project.objects.filter(is_active=True, leads=user)
+        return Project.objects.all()
+    return Project.objects.filter(leads=user)
 
 
 @login_required
@@ -111,9 +110,11 @@ def dashboard(request):
 def project_dashboard(request, project_id):
     project = get_object_or_404(_visible_projects(request.user), pk=project_id)
     cycle = project.cycles.annotate(average=Avg("responses__score"), total=Count("responses")).first()
-    if not cycle:
-        raise Http404("No feedback cycle exists for this project")
-    distribution = {item["score"]: item["total"] for item in cycle.responses.values("score").annotate(total=Count("id"))}
+    distribution = (
+        {item["score"]: item["total"] for item in cycle.responses.values("score").annotate(total=Count("id"))}
+        if cycle
+        else {}
+    )
     bars = [{"score": score, "count": distribution.get(score, 0)} for score in range(1, 6)]
     return render(request, "feedback/project_dashboard.html", {"project": project, "cycle": cycle, "bars": bars, "is_admin": request.user.is_staff})
 
