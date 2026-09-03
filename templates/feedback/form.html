@@ -9,7 +9,7 @@
     <fieldset style="border:0;padding:0;margin:0"><legend class="question-label">Overall project health</legend>
       <div class="rating-grid" role="radiogroup">
         {% for radio in form.score %}<label class="rating">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>{% endfor %}
-      </div><div class="scale-labels"><span>Critical</span><span>Excellent</span></div>
+      </div><div class="scale-labels"><span>1 — Critical</span><span>5 — Excellent</span></div>
     </fieldset>
     {% if form.score.errors %}<p class="form-error">Choose a score from 1 to 5.</p>{% endif %}
     <div class="field"><label class="question-label" for="{{ form.comment.id_for_label }}">Anything else we should know? <span class="optional">Optional</span></label>{{ form.comment }}</div>
