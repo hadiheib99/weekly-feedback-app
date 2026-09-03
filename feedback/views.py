@@ -15,7 +15,11 @@ from .models import FeedbackCycle, Project
 
 def home(request):
     now = timezone.now()
-    cycle = FeedbackCycle.objects.filter(project__is_active=True, opens_at__lte=now, closes_at__gte=now).first()
+    cycle = FeedbackCycle.objects.filter(
+        project__is_active=True,
+        opens_at__lte=now,
+        closes_at__gte=now,
+    ).order_by("-opens_at", "id").first()
     if cycle:
         return redirect("feedback_form", token=cycle.token)
     return render(request, "feedback/empty.html")
@@ -28,7 +32,13 @@ def _hash(value):
 
 def feedback_form(request, token):
     cycle = get_object_or_404(FeedbackCycle.objects.select_related("project"), token=token)
-    if not cycle.is_open:
+    if not cycle.project.is_active:
+        return render(request, "feedback/unavailable.html", status=403)
+
+    now = timezone.now()
+    if now < cycle.opens_at:
+        return render(request, "feedback/unavailable.html", {"future_cycle": True}, status=403)
+    if now > cycle.closes_at:
         return render(request, "feedback/closed.html", {"cycle": cycle}, status=403)
 
     device_id = request.COOKIES.get("pulse_device") or uuid.uuid4().hex
@@ -39,7 +49,7 @@ def feedback_form(request, token):
 
     if request.method == "POST":
         if duplicate:
-            return render(request, "feedback/unavailable.html", status=409)
+            return render(request, "feedback/unavailable.html", {"duplicate_submission": True}, status=409)
         form = ResponseForm(request.POST)
         if form.is_valid():
             response = form.save(commit=False)
@@ -50,13 +60,13 @@ def feedback_form(request, token):
                 with transaction.atomic():
                     response.save()
             except IntegrityError:
-                return render(request, "feedback/unavailable.html", status=409)
+                return render(request, "feedback/unavailable.html", {"duplicate_submission": True}, status=409)
             result = redirect("feedback_thanks", token=token)
             result.set_cookie("pulse_device", device_id, max_age=60 * 60 * 24 * 365, httponly=True, samesite="Lax", secure=not settings.DEBUG)
             return result
     else:
         if duplicate:
-            return render(request, "feedback/unavailable.html", status=409)
+            return render(request, "feedback/unavailable.html", {"duplicate_submission": True}, status=409)
         form = ResponseForm()
     return render(request, "feedback/form.html", {"cycle": cycle, "form": form})
 

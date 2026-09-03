@@ -1,5 +1,12 @@
 {% extends 'feedback/base.html' %}
-{% block title %}Unable to submit · Pulse{% endblock %}
+{% block title %}Check-in unavailable · Pulse{% endblock %}
 {% block content %}<main class="feedback-page"><div class="feedback-wrap"><div class="card success">
-  <div class="success-icon">!</div><h2>Unable to submit</h2><p>This feedback form cannot accept a response from this browser or network.</p>
+  <div class="success-icon">!</div>
+  {% if duplicate_submission %}
+    <h2>Unable to submit</h2><p>This feedback form cannot accept a response from this browser or network.</p>
+  {% elif future_cycle %}
+    <h2>This check-in is not currently open.</h2><p>Please return when the feedback window opens.</p>
+  {% else %}
+    <h2>This check-in is unavailable.</h2><p>This feedback form cannot accept a response.</p>
+  {% endif %}
 </div></div></main>{% endblock %}
