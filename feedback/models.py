@@ -1,4 +1,5 @@
 import secrets
+from numbers import Integral
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -65,5 +66,11 @@ class Response(models.Model):
             models.UniqueConstraint(fields=["cycle", "device_hash"], name="one_device_per_cycle"),
         ]
         ordering = ["-created_at"]
+
+    def clean_fields(self, exclude=None):
+        if (exclude is None or "score" not in exclude) and self.score is not None:
+            if isinstance(self.score, bool) or not isinstance(self.score, Integral):
+                raise ValidationError({"score": "Score must be an integer."})
+        super().clean_fields(exclude=exclude)
 
 # Create your models here.

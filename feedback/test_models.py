@@ -199,7 +199,7 @@ class ResponseModelTests(TestCase):
             self.assertIsNotNone(response.created_at)
 
     def test_response_rejects_invalid_scores(self):
-        for score in (0, 6, -1, "not-an-integer", None):
+        for score in (0, 6, -1, 1.5, -1.5, True, "not-an-integer", None):
             with self.subTest(score=score), self.assertRaises(ValidationError):
                 self.response(score=score).full_clean()
 
