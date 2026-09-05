@@ -14,7 +14,20 @@ python3 -m venv /tmp/pulse-venv
 /tmp/pulse-venv/bin/python manage.py runserver
 ```
 
-The demo login is `demo-admin` / `pulse-demo`. The seed command prints the public feedback URL. Open `http://127.0.0.1:8000/admin/` to manage projects and cycles.
+## Local demonstration data
+
+`python manage.py seed_demo` is for local demonstration only and refuses to run when `DEBUG=False`. In the virtual environment used above, run:
+
+```bash
+/tmp/pulse-venv/bin/python manage.py seed_demo
+```
+
+The command reconciles the same demo records each time and prints the current public feedback link. These credentials are intentionally unsafe and must never be used in production:
+
+- Administrator: `demo-admin` / `pulse-demo-admin`
+- Project lead: `demo-lead` / `pulse-demo-lead`
+
+After seeding, both users can sign in at `http://127.0.0.1:8000/accounts/login/`; the administrator can also enter `http://127.0.0.1:8000/admin/`.
 
 ## Product decisions represented
 
