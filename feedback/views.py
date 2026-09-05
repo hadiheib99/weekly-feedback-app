@@ -117,13 +117,33 @@ def dashboard(request):
 @login_required
 def project_dashboard(request, project_id):
     project = get_object_or_404(_visible_projects(request.user), pk=project_id)
-    cycle = project.cycles.annotate(average=Avg("responses__score"), total=Count("responses")).first()
-    distribution = (
-        {item["score"]: item["total"] for item in cycle.responses.values("score").annotate(total=Count("id"))}
-        if cycle
-        else {}
+    cycle = (
+        project.cycles.annotate(average=Avg("responses__score"), total=Count("responses"))
+        .order_by("-opens_at", "-id")
+        .first()
     )
+    distribution = {}
+    comments = []
+    if cycle:
+        distribution = {
+            item["score"]: item["total"]
+            for item in cycle.responses.values("score").annotate(total=Count("id"))
+        }
+        comments = cycle.responses.exclude(comment__regex=r"^\s*$").order_by("-created_at", "-id").values(
+            "comment", "score", "created_at"
+        )
     bars = [{"score": score, "count": distribution.get(score, 0)} for score in range(1, 6)]
-    return render(request, "feedback/project_dashboard.html", {"project": project, "cycle": cycle, "bars": bars, "is_admin": request.user.is_staff})
+    context = {
+        "project": project,
+        "has_cycle": cycle is not None,
+        "opens_at": cycle.opens_at if cycle else None,
+        "closes_at": cycle.closes_at if cycle else None,
+        "response_total": cycle.total if cycle else None,
+        "average_score": cycle.average if cycle else None,
+        "bars": bars if cycle else [],
+        "comments": comments,
+        "is_admin": request.user.is_staff,
+    }
+    return render(request, "feedback/project_dashboard.html", context)
 
 # Create your views here.

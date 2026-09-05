@@ -1,9 +1,20 @@
 {% extends 'feedback/base.html' %}
 {% block title %}{{ project.name }} · Pulse{% endblock %}
 {% block content %}<div class="dash-layout">{% include 'feedback/sidebar.html' %}<main class="main">
-  <div class="main-header"><div><div class="eyebrow">{{ project.name }}</div><h1>Weekly health</h1><p class="subtle">{{ cycle.total }} anonymous responses · {{ cycle.opens_at|date:'M j' }}–{{ cycle.closes_at|date:'M j' }}</p></div><button class="outline-btn" disabled>Export report ↓</button></div>
-  <section class="stats"><div class="card stat"><div class="stat-label">Average score</div><div class="stat-value">{{ cycle.average|floatformat:1|default:'—' }}</div></div><div class="card stat"><div class="stat-label">Responses</div><div class="stat-value">{{ cycle.total }}</div></div><div class="card stat"><div class="stat-label">Cycles tracked</div><div class="stat-value">{{ project.cycles.count }}</div></div></section>
-  <section class="grid-2"><div class="card panel"><div class="panel-head"><h3>Latest cycle</h3><span class="subtle">Average health</span></div><div style="padding:45px 0;text-align:center"><div class="stat-value" style="font-size:72px;color:var(--green)">{{ cycle.average|floatformat:1|default:'—' }}</div><p class="subtle">out of 5</p></div></div>
-    <div class="card panel"><div class="panel-head"><h3>Score distribution</h3><span class="subtle">{{ cycle.total }} total</span></div><div class="bars">{% for bar in bars %}<div class="bar-wrap"><div class="bar {% if bar.score == 5 %}strong{% endif %}" style="height:{% widthratio bar.count 1 22 %}px"><span>{{ bar.count }}</span></div>{{ bar.score }}</div>{% endfor %}</div></div></section>
-  <section class="card panel comments"><div class="panel-head"><h3>Anonymous comments</h3></div>{% for response in cycle.responses.all %}{% if response.comment %}<div class="comment">{{ response.comment }}<div class="comment-meta">Score {{ response.score }} · {{ response.created_at|date:'M j, g:i A' }}</div></div>{% endif %}{% empty %}<p class="subtle">No comments yet.</p>{% endfor %}</section>
+  <div class="main-header"><div><div class="eyebrow">{{ project.name }}</div><h1>Weekly health</h1>{% if not project.is_active %}<p class="subtle">Inactive project</p>{% endif %}</div></div>
+  {% if has_cycle %}
+    <p class="subtle cycle-dates"><strong>Opens:</strong> {{ opens_at|date:'M j, Y, g:i A' }} · <strong>Closes:</strong> {{ closes_at|date:'M j, Y, g:i A' }}</p>
+    <section class="stats">
+      <div class="card stat"><div class="stat-label">Average score</div><div class="stat-value">{{ average_score|floatformat:1|default:'—' }}</div></div>
+      <div class="card stat"><div class="stat-label">Responses</div><div class="stat-value">{{ response_total }}</div></div>
+    </section>
+    <section class="card panel"><div class="panel-head"><h3>Score distribution</h3><span class="subtle">{{ response_total }} total</span></div>
+      <div class="bars">{% for bar in bars %}<div class="bar-wrap"><div class="bar {% if bar.score == 5 %}strong{% endif %}" style="height:{% widthratio bar.count 1 22 %}px"><span class="distribution-count">{{ bar.count }}</span></div><span class="distribution-label">{{ bar.score }}</span></div>{% endfor %}</div>
+    </section>
+    <section class="card panel comments"><div class="panel-head"><h3>Anonymous comments</h3></div>
+      {% for response in comments %}<div class="comment"><span class="anonymous-label">Anonymous</span>: {{ response.comment }}<div class="comment-meta">Score {{ response.score }} · {{ response.created_at|date:'M j, Y, g:i A' }}</div></div>{% empty %}<p class="subtle">No comments yet</p>{% endfor %}
+    </section>
+  {% else %}
+    <section class="card panel"><h2>No feedback cycles yet</h2><p class="subtle">Results will appear after a feedback cycle is created.</p></section>
+  {% endif %}
 </main></div>{% endblock %}
